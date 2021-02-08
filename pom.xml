@@ -7,7 +7,12 @@
     <groupId>org.example</groupId>
     <artifactId>Autoclaimer</artifactId>
     <version>1.0-SNAPSHOT</version>
-
+    <repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+    </repositories>
     <properties>
         <java.version>1.8</java.version>
         <maven.compiler.version>3.8.1</maven.compiler.version>
@@ -41,6 +46,11 @@
             <version>20090211</version>
         </dependency>
         <dependency>
+            <groupId>com.github.ihsanbal</groupId>
+            <artifactId>LoggingInterceptor</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
             <version>3.12.2</version>
@@ -49,6 +59,11 @@
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp-urlconnection</artifactId>
             <version>3.12.2</version>
+        </dependency>
+        <dependency>
+            <groupId>net.dongliu</groupId>
+            <artifactId>requests</artifactId>
+            <version>5.0.8</version>
         </dependency>
         <dependency>
             <groupId>javax.mail</groupId>
