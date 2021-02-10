@@ -1,5 +1,5 @@
 ---
-tokenAccounts: true
+tokenAccounts: false
 authThreadCount: 50
 senderEmail: mafiaswaps@gmail.com
 gmailAppPassword: syppuhbeefmfmlhp

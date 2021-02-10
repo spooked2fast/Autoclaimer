@@ -59,4 +59,13 @@ public class FileIO {
     public String getDataDirectoryPath(){
         return dataDirectoryPath;
     }
+    public ArrayList<String> removeDuplicates(ArrayList<String> list) {
+        ArrayList<String> newList = new ArrayList<String>();
+        for (String element : list) {
+            if (!newList.contains(element)) {
+                newList.add(element);
+            }
+        }
+        return newList;
+    }
 }

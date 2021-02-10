@@ -5,6 +5,9 @@ public class Target {
         this.gamertag = gamertag;
         this.xuid = xuid;
     }
+    public Target(String gamertag){
+        this.gamertag = gamertag;
+    }
     public void setXuid(){
         this.xuid = xuid;
     }
