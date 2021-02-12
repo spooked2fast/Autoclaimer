@@ -23,7 +23,7 @@ public class Main {
         System.out.println("\n");
         console.updateMessage("?", "Threads: ");
         int nThreads = console.getUserInt();
-        CheckThreading checkThreading = new CheckThreading(accountCredentials,targets,nThreads, console);
+        CheckThreading checkThreading = new CheckThreading(accountCredentials,targets,nThreads, console, settings);
         checkThreading.createAndRunTasks();
     }
 }

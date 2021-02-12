@@ -9,11 +9,13 @@ public class ValidateTargetThread extends Thread{
     private OkHttpClient client = new OkHttpClient();
     private CountDownLatch latch;
     private XboxAccount account;
-    public ValidateTargetThread(TargetGrabber master, String target, CountDownLatch latch, XboxAccount account){
+    private boolean fail;
+    public ValidateTargetThread(TargetGrabber master, String target, CountDownLatch latch, XboxAccount account, boolean fail){
         this.account = account;
         this.latch = latch;
         this.target = target;
         this.master = master;
+        this.fail = fail;
     }
     public void stopSelf(){
         finished = true;
@@ -24,7 +26,7 @@ public class ValidateTargetThread extends Thread{
             if(code == 200 || code ==403){
                 String xuid = account.getXuidFromTag(target, client);
                 Target newTarget = new Target(target,xuid);
-                master.setValidatedTargets(newTarget);
+                master.setValidatedTargets(newTarget,fail);
             }
             latch.countDown();
             stopSelf();

@@ -6,7 +6,8 @@ public class FileIO {
     private String dataDirectoryPath;
     private ReentrantLock lock = new ReentrantLock();
     public FileIO(){
-        String windowsPath = System.getProperty("user.dir") + "\\Data\\";
+//        String windowsPath = System.getProperty("user.dir") + "\\Data\\";
+        String windowsPath = System.getProperty("user.dir") + "/Data/";
         try{
             File testDirectoryPath = new File(windowsPath + "Gamertags.txt");
             this.dataDirectoryPath = windowsPath;
@@ -67,5 +68,8 @@ public class FileIO {
             }
         }
         return newList;
+    }
+    public void removeElementFromFile(){
+
     }
 }

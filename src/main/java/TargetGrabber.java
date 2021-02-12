@@ -42,7 +42,7 @@ public class TargetGrabber {
         latch = new CountDownLatch(allTagCombos.size());
         int accountIndex = 0;
         for(int i = 0; i < allTagCombos.size(); i++){
-            ValidateTargetThread validateTargetThread = new ValidateTargetThread(this,allTagCombos.get(i), latch,accounts.get(accountIndex));
+            ValidateTargetThread validateTargetThread = new ValidateTargetThread(this,allTagCombos.get(i), latch,accounts.get(accountIndex), false);
             executor.execute(validateTargetThread);
             if(accountIndex < accounts.size()){
                 accountIndex++;
@@ -62,11 +62,13 @@ public class TargetGrabber {
     public XboxAccount getRandomAccount(){
         return accountCredentials.getRandomAccount();
     }
-    public void setValidatedTargets(Target target){
+    public void setValidatedTargets(Target target, boolean fail){
         lock.lock();
         validatedTargets.add(target);
-        writeTagFiltered(target.getGamertag() + ":" + target.getXuid());
-        console.updateTargetHeader(validatedTargets.size());
+        if(! fail){
+            writeTagFiltered(target.getGamertag() + ":" + target.getXuid());
+            console.updateTargetHeader(validatedTargets.size());
+        }
         lock.unlock();
     }
     public ArrayList<Target> getTargets(){
@@ -83,5 +85,31 @@ public class TargetGrabber {
         OkHttpClient client = new OkHttpClient();
         String newTag = account.findNewTag(target, client);
         return newTag;
+    }
+    public Target findNewTarget(Target target){
+        validatedTargets.clear();
+        ArrayList<String> toCheck = new ArrayList<String>(); //finding how tag was spaced in the swap on failure
+        String tag = target.getGamertag();
+        if(tag.contains(" ")){
+            String[] tagSplit = tag.split(" ");
+            tag = tagSplit[0] + tagSplit[1];
+        }
+        toCheck.add(tag);
+        String combo1 = tag.substring(0,1)+ " "+ tag.substring(1);
+        String combo2 = tag.substring(0,tag.length()-1)+ " "+ tag.substring(tag.length()-1);
+        toCheck.add(combo1);
+        toCheck.add(combo2);
+        CountDownLatch latch = new CountDownLatch(toCheck.size());
+        for(String combo: toCheck){
+            ValidateTargetThread nextThread = new ValidateTargetThread(this,combo,latch,getRandomAccount(),true);
+            nextThread.start();
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            //continue...
+        }
+        Target newTarget = validatedTargets.get(0);
+        return newTarget;
     }
 }

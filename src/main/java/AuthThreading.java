@@ -37,7 +37,9 @@ public class AuthThreading {
             System.out.println();
         } else {
             xboxRefreshTokens = fileIO.fileContentsToList(fileIO.getDataDirectoryPath() + "XboxTokens.txt");
+            xboxRefreshTokens = fileIO.removeDuplicates(xboxRefreshTokens);
             microsoftRefreshTokens = fileIO.fileContentsToList(fileIO.getDataDirectoryPath() + "MicrosoftTokens.txt");
+            microsoftRefreshTokens =fileIO.removeDuplicates(microsoftRefreshTokens);
             console.updateMessage("+", microsoftRefreshTokens.size() + " Microsoft tokens found");
             System.out.println();
             console.updateMessage("+", xboxRefreshTokens.size() + " Xbox tokens found");

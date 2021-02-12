@@ -16,7 +16,10 @@ public class CheckThreading {
     private Console console;
     private ReentrantLock lock = new ReentrantLock();
     private Claimer claimer;
-    public CheckThreading(AccountCredentials accountCredentials, ArrayList<Target> targets, int nThreads, Console console){
+    private Settings settings;
+    private boolean running = false;
+    public CheckThreading(AccountCredentials accountCredentials, ArrayList<Target> targets, int nThreads, Console console, Settings settings){
+        this.settings = settings;
         this.console = console;
         this.nThreads = nThreads;
         this.accountCredentials = accountCredentials;
@@ -24,7 +27,7 @@ public class CheckThreading {
         accounts = accountCredentials.getXboxAccounts();
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
         ArrayList<MicrosoftAccount> claimAccounts = accountCredentials.getMicrosoftAccounts();
-        claimer = new Claimer(claimAccounts,console);
+        claimer = new Claimer(claimAccounts,console, settings,accountCredentials);
     }
     public void createAndRunTasks(){
         int accountsSublistSize = accounts.size()/nThreads;
@@ -46,12 +49,14 @@ public class CheckThreading {
             executor.execute(task);
         }
         System.out.println();
+        running = true;
+
     }
-    public void printClaiming(Target target){
-        System.out.println("\n");
-        console.updateMessage("Autoclaimer", "Claiming gamertag: " + target.getGamertag());
-        System.out.println("\n");
-    }
+//    public void printClaiming(Target target){
+//        System.out.println("\n");
+//        console.updateMessage("Autoclaimer", "Claiming gamertag: " + target.getGamertag());
+//        System.out.println("\n");
+//    }
     public void updateRequestCount(boolean isRL){
         lock.lock();
         if(isRL){
@@ -59,10 +64,11 @@ public class CheckThreading {
         } else {
             successfulTries++;
         }
+        if(! claimer.isClaiming() && running)
         console.updateAutoclaimerMessage(successfulTries,RL);
         lock.unlock();
     }
-    public void claim(Target target){
-        claimer.claimGamertag(target);
+    public boolean claim(Target target){
+        return claimer.claimGamertag(target);
     }
 }
