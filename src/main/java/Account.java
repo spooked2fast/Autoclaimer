@@ -1,9 +1,9 @@
 public class Account {
-    private String email;
-    private String password;
-    private String xstsRelyingParty;
+    private final String email;
+    private final String password;
+    private final String xstsRelyingParty;
     private String refreshToken;
-    private XstsToken xstsToken;
+
     public Account(String email, String password, String xstsRelyingParty){
         this.email = email;
         this.password = password;
@@ -29,5 +29,7 @@ public class Account {
     }
     public String getXstsRelyingParty(){
         return xstsRelyingParty;
+    }
+    public void setXstsToken(XstsToken xstsToken){
     }
 }

@@ -4,10 +4,12 @@ import org.json.JSONObject;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 public class XboxAccount extends Account{
     private XstsToken xstsToken;
     private boolean RL = false;
+    private boolean useOrigin  = false;
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     public XboxAccount(String email, String password){
         super(email, password, "http://xboxlive.com");
@@ -22,7 +24,7 @@ public class XboxAccount extends Account{
             check = tmp[0] + "%20" + tmp[1];
         }
         Request request = new Request.Builder()
-                .url("https://social.xboxlive.com/users/gt("+ gamertag+")/people/")
+                .url("https://social.xboxlive.com/users/gt("+ check+")/people/")
                 .addHeader("Authorization", "XBL3.0 x=" + xstsToken.toString())
                 .addHeader("x-xbl-contract-version", "2")
                 .build();
@@ -59,19 +61,49 @@ public class XboxAccount extends Account{
     }
     public String getXuidFromTag(String gamertag,OkHttpClient client){
         String check = gamertag;
-        if(gamertag.contains(" ")){
-            String[] tmp = gamertag.split(" ");
-            check = tmp[0] + "%20" + tmp[1];
+        try{
+            if(gamertag.contains(" ")){
+                String[] tmp = gamertag.split(" ");
+                check = tmp[0] + "%20" + tmp[1];
+            }
+        } catch (Exception e){
+
         }
         Request request = new Request.Builder()
-                .url("https://profile.xboxlive.com/users/gt("+ gamertag+")/settings")
+                .url("https://profile.xboxlive.com/users/gt("+ check+")/settings")
                 .addHeader("Authorization", "XBL3.0 x=" + xstsToken.toString())
                 .addHeader("x-xbl-contract-version", "2")
                 .build();
         try (Response response = client.newCall(request).execute()) {
             String jsonResponse = response.body().string();
-            String xuid = jsonResponse.substring(jsonResponse.indexOf("id\":\"") + 5, jsonResponse.indexOf("\",\"hostId\":\""));
-            return xuid;
+            if(response.code() != 200){
+                return null;
+            }
+            return jsonResponse.substring(jsonResponse.indexOf("id\":\"") + 5, jsonResponse.indexOf("\",\"hostId\":\""));
+        } catch (Exception e){
+            return null;
+        }
+    }
+    public String getXuidFromTag2(String gamertag,OkHttpClient client){
+        String check = gamertag;
+        if(gamertag.contains(" ")){
+            String[] tmp = gamertag.split(" ");
+            check = tmp[0] + "%20" + tmp[1];
+        }
+        Request request = new Request.Builder()
+                .url("https://avatarservices.xboxlive.com/users/gt(" + check + ")/avatar/manifest")
+                .addHeader("Authorization", "XBL3.0 x=" + xstsToken.toString())
+                .addHeader("Host", "avatarservices.xboxlive.com")
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            String jsonResponse = response.body().string();
+            int i = jsonResponse.indexOf("\"xuid\"") + 7;
+            String xuid = jsonResponse.substring(i,i+16 );
+            if(xuid.contains("filtered")){
+                return null;
+            } else {
+                return xuid;
+            }
         } catch (Exception e){
             return null;
         }
@@ -92,9 +124,56 @@ public class XboxAccount extends Account{
                 .build();
         try (Response response = client.newCall(request).execute()) {
             String jsonResponse = response.body().string();
-            String value = jsonResponse.substring(jsonResponse.indexOf("\"value\":\"")+9, jsonResponse.indexOf("\"}]"));
-            return value;
+            return jsonResponse.substring(jsonResponse.indexOf("\"value\":\"")+9, jsonResponse.indexOf("\"}]"));
         } catch (Exception e){
+            return null;
+        }
+    }
+    public String profileBatch(RequestBody body, OkHttpClient client){
+        String url;
+        if(useOrigin){
+            useOrigin = false;
+            url = "https://profile-origin.xboxlive.com/users/batch/profile/settings";
+        } else {
+            useOrigin = true;
+            url = "https://profile.xboxlive.com/users/batch/profile/settings";
+        }
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "XBL3.0 x=" + xstsToken.toString())
+                .addHeader("x-xbl-contract-version", "2")
+                .addHeader("Content-Type","application/json")
+                .post(body)
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if(response.code() != 200){
+                return null;
+            }
+            return response.body().string();
+        } catch (Exception e){
+//            e.printStackTrace();
+            return null;
+        }
+    }
+    public JSONObject requestEmail(OkHttpClient client){
+        Request claimRequest = new Request.Builder()
+                .url("https://accounts.xboxlive.com/users/current/profile/settings")
+                .addHeader("x-xbl-contract-version","2")
+                .addHeader("Authorization","XBL3.0 x=" + xstsToken.toString())
+                .build();
+        try (Response response = client.newCall(claimRequest).execute()) {
+            String jsonResponse = response.body().string();
+            System.out.println("\n" + jsonResponse + "\n");
+            JSONObject jsonSerial = new JSONObject(jsonResponse);
+            String email = jsonSerial.getString("email");
+//            String gtg = jsonSerial.getString("gamerTag");
+////            String[] returnArray = new String[2];
+////            returnArray[0] = email;
+////            returnArray[1] =
+////            return email;
+            return jsonSerial;
+        } catch(Exception e){
+//            e.printStackTrace();
             return null;
         }
     }

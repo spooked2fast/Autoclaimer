@@ -4,23 +4,28 @@ public class AuthThread extends Thread{
     private String email;
     private String password;
     private volatile boolean finished;
-    private XboxLiveAuth xboxLiveAuth = new XboxLiveAuth();
-    private AuthThreading master;
-    private boolean createXbox;
-    private CountDownLatch latch;
+    private final XboxLiveAuth xboxLiveAuth;
+    private final AuthThreading master;
+    private final boolean createXbox;
+    private final CountDownLatch latch;
     private String refreshToken;
-    public AuthThread(String email , String password, AuthThreading master, boolean createXbox, CountDownLatch latch){
+    private final Settings settings;
+    public AuthThread(String email , String password, AuthThreading master, boolean createXbox, CountDownLatch latch, Settings settings){
+        this.settings = settings;
         this.createXbox = createXbox;
         this.email = email;
         this.password = password;
         this.master = master;
         this.latch = latch;
+        this.xboxLiveAuth = new XboxLiveAuth(this.settings);
     }
-    public AuthThread(String refreshToken, AuthThreading master, boolean createXbox, CountDownLatch latch){
+    public AuthThread(String refreshToken, AuthThreading master, boolean createXbox, CountDownLatch latch, Settings settings){
+        this.settings = settings;
         this.refreshToken = refreshToken;
         this.createXbox = createXbox;
         this.master = master;
         this.latch = latch;
+        this.xboxLiveAuth = new XboxLiveAuth(this.settings);
     }
     public void stopSelf(){
         finished = true;

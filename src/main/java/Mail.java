@@ -11,7 +11,7 @@ public class Mail {
     public Mail(Settings settings){
         this.settings = settings;
     }
-    public void createMsg(String credentials, String gamertag){
+    public void createMsg(String credentials, String gamertag, String newTag, long claimTime){
         String to = settings.getRecipientEmail();
         String from = settings.getSenderEmail();
         String host = "smtp.gmail.com";
@@ -30,11 +30,13 @@ public class Mail {
         });
         session.setDebug(false);
         try {
+            String[] emailAndPassword = credentials.split(":");
             MimeMessage message = new MimeMessage(session);
             message.setFrom(new InternetAddress(from));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            message.setSubject("Autoclaimed GT: " + gamertag);
-            message.setText(gamertag + " | " + credentials);
+            message.setSubject("Claimed GT '" + gamertag + "'");
+//            message.setSubject("Checker");
+            message.setText("[New GT: " + newTag + "]\n[Claim Time: " + claimTime + " ms]\n\n" + emailAndPassword[0] + "\n" + emailAndPassword[1]);
             Transport.send(message);
         } catch (Exception mex) {
         }

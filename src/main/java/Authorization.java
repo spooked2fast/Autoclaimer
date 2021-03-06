@@ -6,10 +6,8 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 public class Authorization {
-    private Mail mail;
     private String clientIP;
-    public Authorization(Mail mail){
-        this.mail = mail;
+    public Authorization(){
     }
     public boolean getIsAuth() {
         OkHttpClient client = new OkHttpClient();
@@ -17,8 +15,9 @@ public class Authorization {
                 .url("https://api.ipify.org?format=json")
                 .build();
         try (Response response = client.newCall(request).execute()) {
+            assert response.body() != null;
             String body = response.body().string();
-            clientIP = body.substring(body.indexOf(":\"")+2, body.indexOf("\"}")).toString();
+            clientIP = body.substring(body.indexOf(":\"")+2, body.indexOf("\"}"));
         } catch (IOException e){
             e.printStackTrace();
         }
@@ -26,6 +25,7 @@ public class Authorization {
                 .url("https://pastebin.com/raw/Gz8zeGG0")
                 .build();
         try (Response response = client.newCall(pastebin).execute()) {
+            assert response.body() != null;
             String body = response.body().string();
             StringTokenizer st = new StringTokenizer(body);
             while(st.hasMoreElements()){
@@ -34,7 +34,7 @@ public class Authorization {
                 }
             }
         } catch(Exception e){
-            getIsAuth();
+//            getIsAuth();
         }
         return false;
     }

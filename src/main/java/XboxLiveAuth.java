@@ -11,10 +11,12 @@ import java.nio.charset.StandardCharsets;
 
 public class XboxLiveAuth {
     private final OkHttpClient client = new OkHttpClient();
+    private String deviceToken;
     private Session session = Requests.session();
-    private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private static final String loginURL = "https://login.live.com/oauth20_authorize.srf?display=touch&scope=service%3A%3Auser.auth.xboxlive.com%3A%3AMBI_SSL&redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf&locale=en&response_type=token&client_id=0000000048093EE3";
-    public XboxLiveAuth(){
+    private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private final String loginURL = "https://login.live.com/oauth20_authorize.srf?display=touch&scope=service%3A%3Auser.auth.xboxlive.com%3A%3AMBI_SSL&redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf&locale=en&response_type=token&client_id=0000000048093EE3";
+    public XboxLiveAuth(Settings settings){
+        this.deviceToken = settings.getDeviceToken();
     }
     public String login(String email, String password) {
         try{
@@ -31,8 +33,7 @@ public class XboxLiveAuth {
                     .send();
             String locationHeader = resp2.getHeader("Location");
             String accessToken = locationHeader.substring(locationHeader.indexOf("access_token=") + 13, locationHeader.indexOf("&"));
-            String refreshToken  = postJWTfromRPS(accessToken);
-            return refreshToken;
+            return postJWTfromRPS(accessToken);
         } catch (Exception e){
             return null;
         }
@@ -43,15 +44,11 @@ public class XboxLiveAuth {
         Request request = new Request.Builder()
                 .url("https://user.auth.xboxlive.com/user/authenticate")
                 .addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Zoom 3.6.0)")
-                .addHeader("Host", "beta-user.auth.xboxlive.com")
-                .addHeader("Connection", " Keep-Alive")
                 .post(body)
                 .build();
-        try {
-            Response response = client.newCall(request).execute();
+        try (Response response = client.newCall(request).execute()) {
             String jsonResponse = response.body().string();
-            String token = jsonResponse.substring( jsonResponse.indexOf("\"Token\":\"") + 9, jsonResponse.indexOf("DisplayClaims") -3);
-            return token;
+            return jsonResponse.substring( jsonResponse.indexOf("\"Token\":\"") + 9, jsonResponse.indexOf("DisplayClaims") -3);
         } catch (Exception e){
             return null;
         }
@@ -61,16 +58,38 @@ public class XboxLiveAuth {
     }
     public XstsToken getXstsToken(Account account){
         if(account.getXstsRelyingParty().contains("accounts")){
-            if(! isValidMicrosoft(account))
-                return null;
-        }
+            boolean isMS = isValidMicrosoft(account);
+                String refreshToken = account.getRefreshToken();
+                String json = "{'RelyingParty':'" + account.getXstsRelyingParty() +"','TokenType':'JWT','Properties':{'UserTokens':['" + refreshToken+ "'],'SandboxId':'RETAIL'}}";
+                RequestBody body = RequestBody.create(JSON, json);
+                Request request = new Request.Builder()
+                        .url("https://xsts.auth.xboxlive.com/xsts/authorize")
+                        .addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Zoom 3.6.0)")
+                        .post(body)
+                        .build();
+                try (Response response = client.newCall(request).execute()) {
+                    String jsonResponse = response.body().string();
+                    JSONObject jsonObject = new JSONObject(jsonResponse);
+                    String token = jsonObject.getString("Token");
+                    JSONArray xui = jsonObject.getJSONObject("DisplayClaims").getJSONArray("xui");
+                    String uhs = xui.getJSONObject(0).getString("uhs");
+                    XstsToken xstsToken = new XstsToken(uhs, token, account.getXstsRelyingParty());
+                    if(jsonResponse.contains("xid") && account.getXstsRelyingParty().contains("accounts")){
+                        return null;
+                    }
+                    if(isMS)
+                    return xstsToken;
+                } catch (Exception e){
+//                    e.printStackTrace();
+                    return null;
+                }
+            }
         String refreshToken = account.getRefreshToken();
-        String json = "{'RelyingParty':'" + account.getXstsRelyingParty() +"','TokenType':'JWT','Properties':{'UserTokens':['" + refreshToken+ "'],'SandboxId':'RETAIL'}}";
+        String json = "{\"RelyingParty\":\"http://xboxlive.com\",\"TokenType\":\"JWT\",\"Properties\":{\"DeviceToken\":\"" + deviceToken+ "\",\"SandboxId\":\"XDKS.1\",\"OptionalDisplayClaims\":[\"mgt\",\"mgs\",\"umg\"],\"UserTokens\":[\"" +  refreshToken+ "\"]}}";
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .url("https://xsts.auth.xboxlive.com/xsts/authorize")
                 .addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Zoom 3.6.0)")
-                .addHeader("Host", " xsts.auth.xboxlive.com")
                 .post(body)
                 .build();
         try (Response response = client.newCall(request).execute()) {
@@ -79,9 +98,9 @@ public class XboxLiveAuth {
             String token = jsonObject.getString("Token");
             JSONArray xui =jsonObject.getJSONObject("DisplayClaims").getJSONArray("xui");
             String uhs = xui.getJSONObject(0).getString("uhs");
-            XstsToken xstsToken = new XstsToken(uhs,token,account.getXstsRelyingParty());
-            return xstsToken;
+            return new XstsToken(uhs,token,account.getXstsRelyingParty());
         } catch (Exception e){
+//            e.printStackTrace();
             return null;
         }
     }
@@ -92,11 +111,13 @@ public class XboxLiveAuth {
         Request request = new Request.Builder()
                 .url("https://xsts.auth.xboxlive.com/xsts/authorize")
                 .addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.2; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Zoom 3.6.0)")
-                .addHeader("Host", " xsts.auth.xboxlive.com")
                 .post(body)
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if(response.code() == 200){
+            if(response.code() != 401){
+                String jsonBody = response.body().string();
+                FileIO fileIO = new FileIO();
+                fileIO.writeToFile(fileIO.getDataDirectoryPath() + "Claims.txt", jsonBody.substring(jsonBody.indexOf("{\"gtg\":") ,jsonBody.indexOf("\",\"xid\":\""))+ " | " + refreshToken);
                 return false;
             } else {
                 return true;

@@ -2,6 +2,7 @@ import okhttp3.*;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 public class MicrosoftAccount extends Account{
@@ -28,7 +29,13 @@ public class MicrosoftAccount extends Account{
                 .post(getClaimJSON(target))
                 .build();
         try (Response response = client.newCall(claimRequest).execute()) {
-            return response.code();
+            String responseBody = response.body().string();
+            if(responseBody.contains("gamerTagChangeReason") && responseBody.contains(target)){
+                return response.code();
+            } else {
+                System.out.println("\n" +response.body().string()+"\n");
+                return 0;
+            }
         } catch (Exception e){
             return 0;
         }
@@ -38,17 +45,21 @@ public class MicrosoftAccount extends Account{
         return RequestBody.create(JSON, body);
     }
     public String requestEmail(OkHttpClient client){
+        OkHttpClient client1 = new OkHttpClient.Builder()
+                .writeTimeout(5, TimeUnit.MINUTES)
+                .readTimeout(5, TimeUnit.MINUTES)
+                .build();
         Request claimRequest = new Request.Builder()
                 .url("https://accountstroubleshooter.xboxlive.com/users/current/profile")
                 .addHeader("x-xbl-contract-version","2")
                 .addHeader("Authorization","XBL3.0 x=" + xstsToken.toString())
                 .build();
-        try (Response response = client.newCall(claimRequest).execute()) {
+        try (Response response = client1.newCall(claimRequest).execute()) {
             String jsonResponse = response.body().string();
             JSONObject jsonSerial = new JSONObject(jsonResponse);
-            String email = jsonSerial.getString("email");
-            return email;
+            return jsonSerial.getString("email");
         } catch(Exception e){
+            requestEmail(client1);
             return null;
         }
     }

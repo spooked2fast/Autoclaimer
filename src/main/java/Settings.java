@@ -1,17 +1,21 @@
 public class Settings {
     private boolean tokenAccounts;
     private int authThreadCount;
+    private int batchSize;
     private String senderEmail;
     private String gmailAppPassword;
     private String recipientEmail;
-    private String discordWebhook;
-    public Settings(boolean tokenAccounts, int authThreadCount, String senderEmail, String gmailAppPassword, String recipientEmail, String discordWebhook){
+    private String claimWebhook;
+    private String deviceToken;
+    public Settings(boolean tokenAccounts, int authThreadCount, int batchSize, String senderEmail, String gmailAppPassword, String recipientEmail, String claimWebhook, String deviceToken){
         this.tokenAccounts = tokenAccounts;
         this.authThreadCount = authThreadCount;
+        this.batchSize = batchSize;
         this.senderEmail = senderEmail;
         this.gmailAppPassword = gmailAppPassword;
         this.recipientEmail = recipientEmail;
-        this.discordWebhook = discordWebhook;
+        this.claimWebhook = claimWebhook;
+        this.deviceToken = deviceToken;
     }
     public Settings(){}
     public boolean isTokenAccounts(){
@@ -19,6 +23,9 @@ public class Settings {
     }
     public int getAuthThreadCount(){
         return authThreadCount;
+    }
+    public int getBatchSize(){
+        return batchSize;
     }
     public String getSenderEmail(){
         return senderEmail;
@@ -29,7 +36,10 @@ public class Settings {
     public String getRecipientEmail(){
         return recipientEmail;
     }
-    public String getDiscordWebhook(){
-        return discordWebhook;
+    public String getclaimWebhook(){
+        return claimWebhook;
+    }
+    public String getDeviceToken(){
+        return deviceToken;
     }
 }

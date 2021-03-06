@@ -5,8 +5,7 @@ public class Main {
         Console console = new Console();
         YamlParser yamlParser = new YamlParser();
         Settings settings = yamlParser.parseYaml("Settings.yaml");
-        Mail mail = new Mail(settings);
-        Authorization authorization = new Authorization(mail);
+        Authorization authorization = new Authorization();
         if(! authorization.getIsAuth()){
             console.updateMessage("!", "You are unauthorized to use this software.");
             System.exit(1);
@@ -18,7 +17,7 @@ public class Main {
         authThreading.getTokens();
         System.out.println("\n");
         TargetGrabber targetGrabber = new TargetGrabber(accountCredentials, console);
-        targetGrabber.refineTargets();
+        targetGrabber.createAndRunTasks();
         ArrayList<Target> targets = targetGrabber.getTargets();
         System.out.println("\n");
         console.updateMessage("?", "Threads: ");

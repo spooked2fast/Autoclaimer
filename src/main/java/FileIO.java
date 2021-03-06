@@ -16,7 +16,7 @@ public class FileIO {
         }
     }
     public ArrayList<String> fileContentsToList(String filePath){
-        ArrayList<String> contents = new ArrayList<String>();
+        ArrayList<String> contents = new ArrayList<>();
         try{
             BufferedReader br = new BufferedReader(new FileReader(filePath));
             String l;
@@ -61,7 +61,7 @@ public class FileIO {
         return dataDirectoryPath;
     }
     public ArrayList<String> removeDuplicates(ArrayList<String> list) {
-        ArrayList<String> newList = new ArrayList<String>();
+        ArrayList<String> newList = new ArrayList<>();
         for (String element : list) {
             if (!newList.contains(element)) {
                 newList.add(element);

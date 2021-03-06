@@ -16,8 +16,8 @@ public class Console {
     public void updateMessage(String header, String message){
         System.out.print( ansi().fg(WHITE).a("[").fgBrightGreen().a(header).fg(WHITE).a("] " + message));
     }
-    public void updateAutoclaimerMessage(int tries, int RL) {
-            System.out.print("\r"+ ansi().fg(WHITE).a("[").fgBrightGreen().a("Autoclaimer").fg(WHITE).a("] Requests: (").fg(WHITE).a(tries).fg(WHITE).a(")").fg(WHITE).a(" |  RL: (").fg(WHITE).a(RL).fg(WHITE).a(")"));
+    public void updateAutoclaimerMessage(int tries, int RL, long time) {
+            System.out.print("\r"+ ansi().fg(WHITE).a("[").fgBrightGreen().a("Autoclaimer").fg(WHITE).a("] Requests: (").fg(WHITE).a(tries).fg(WHITE).a(")").fg(WHITE).a(" |  RL: (").fg(WHITE).a(RL).fg(WHITE).a(") | Check Time: ").fg(WHITE).a(time).fg(WHITE).a(" ms"));
     }
     public void updateTokenHeader(int tokens){
         System.out.print("\r"+ ansi().fg(WHITE).a("[").fgBrightGreen().a(spinBuf[spinIndex]).fg(WHITE).a("] Accounts Loaded: (").fg(WHITE).a(tokens).fg(WHITE).a(")"));
@@ -40,10 +40,10 @@ public class Console {
             Scanner in = new Scanner(System.in);
             if(in.hasNext()){
                 String ans = in.nextLine();
-                if(ans.toLowerCase().equals("y")){
+                if(ans.equalsIgnoreCase("y")){
                     return true;
                 }
-                if(ans.toLowerCase().equals("n")){
+                if(ans.equalsIgnoreCase("n")){
                     return false;
                 }
             }
@@ -54,8 +54,7 @@ public class Console {
         while(true){
             Scanner in = new Scanner(System.in);
             if(in.hasNext()){
-                String userInput = in.nextLine();
-                return userInput;
+                return in.nextLine();
             } else {
                 printError("Please enter a valid value.");
             }

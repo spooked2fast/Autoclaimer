@@ -2,17 +2,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AccountCredentials {
-    private FileIO fileIO = new FileIO();
-    private HashMap<String,String> microsoftAccountCredentials = new HashMap<String, String>();
-    private HashMap<String,String> xboxAccountCredentials = new HashMap<String, String>();
-    private XboxLiveAuth xboxLiveAuth;
-    private ArrayList<XstsToken> xboxTokenPool = new ArrayList<XstsToken>();
-    private ArrayList<XstsToken> microsoftTokenPool = new ArrayList<XstsToken>();
-    private ArrayList<XboxAccount> xboxAccounts = new ArrayList<XboxAccount>();
-    private ArrayList<MicrosoftAccount> microsoftAccounts = new ArrayList<MicrosoftAccount>();
-    private Settings settings;
+    private final FileIO fileIO = new FileIO();
+    private final HashMap<String,String> microsoftAccountCredentials = new HashMap<>();
+    private final HashMap<String,String> xboxAccountCredentials = new HashMap<>();
+    private final ArrayList<XstsToken> xboxTokenPool = new ArrayList<>();
+    private final ArrayList<XstsToken> microsoftTokenPool = new ArrayList<>();
+    private final ArrayList<XboxAccount> xboxAccounts = new ArrayList<>();
+    private final ArrayList<MicrosoftAccount> microsoftAccounts = new ArrayList<>();
+
     public AccountCredentials(Settings settings){
-        this.settings = settings;
         readCredentials("MicrosoftAccounts.txt", microsoftAccountCredentials);
         readCredentials("XboxAccounts.txt", xboxAccountCredentials);
         if(settings.isTokenAccounts()){
@@ -35,18 +33,10 @@ public class AccountCredentials {
         }
     }
     public ArrayList<String> getMicrosoftAccountCredentials(){
-        ArrayList<String> returnSet = new ArrayList<String>();
-        for(String keyValue : microsoftAccountCredentials.keySet()){
-            returnSet.add(keyValue);
-        }
-        return returnSet;
+        return new ArrayList<>(microsoftAccountCredentials.keySet());
     }
     public ArrayList<String> getXboxAccountCredentials(){
-        ArrayList<String> returnSet = new ArrayList<String>();
-        for(String keyValue : xboxAccountCredentials.keySet()){
-            returnSet.add(keyValue);
-        }
-        return returnSet;
+        return new ArrayList<>(xboxAccountCredentials.keySet());
     }
     public void addXboxToken(XstsToken xstsToken){
         xboxTokenPool.add(xstsToken);
